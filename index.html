@@ -696,7 +696,7 @@ function renderAth(){
   '<div><div class="phasebar">'+PHASES.map(function(p){return '<div><i style="width:'+Math.max(0,Math.min(100,(n-p[1]+1)/(p[2]-p[1]+1)*100))+'%"></i></div>'}).join('')+'</div><div class="phaselbl">'+PHASES.map(function(p){return '<span class="'+(p===ph?'on':'')+'">'+p[0]+'</span>'}).join('')+'</div></div>'+
   (st.note&&st.note.text&&!isPro()?'<div class="note"><div class="eyebrow">Message from '+esc(st.note.from_name||'Parent')+'</div><p>'+esc(st.note.text)+'</p></div>':'')+
   tipHTML()+
-  nm9TopHTML()+todayRoutinesHTML()+dwCardHTML()+nm9JCardHTML()+fuelCardHTML()+mindCardHTML()+
+  nm9TopHTML()+nm9MeNudgeHTML()+todayRoutinesHTML()+dwCardHTML()+nm9JCardHTML()+fuelCardHTML()+mindCardHTML()+
   todayGoalsHTML()+nm9GCardHTML()+
   todayChoresHTML()+
   DIMS.map(function(d){return '<section class="card"><div class="dim-h"><div><h3>'+d.n+'</h3><small>'+d.d+'</small></div><span class="sc num">'+(dr.rates[d.k]?scoreOf(dr,d.k)+'/100':'')+'</span></div>'+
@@ -1361,6 +1361,11 @@ app.addEventListener("click",async function(e){var b=e.target&&e.target.closest?
 if(k==="mestart"){nm9MeStart(b);return}
 if(k==="meswitch"){var m=nm9MeAth();if(!m)return;st.cur=m.id;await loadAthlete();go("ath");return}});
 })();
+
+
+function nm9MeNudgeHTML(){var a=A();if(!a||nm9MeAth()||a.sport==="My Standard"||myRole()==="athlete")return '';var x=lsGet("nm9-mex");if(x&&Date.now()-x<7*864e5)return '';
+return '<section class="card pushc"><div class="eyebrow">Parents + coaches &middot; don\'t forget</div><h3>Set up your own Standard</h3><p class="muted" style="font-size:14.5px;margin:0">'+esc(a.name)+' is set. Now lead by example: your own check-in, routines, goals, Daily Word, private journal and 6 AM / 8 PM alerts. Takes 30 seconds. Private to your login.</p><label class="f">Your first name<input type="text" id="me-name" maxlength="30" value="'+esc(((st.fam&&st.fam.parent_name)||"").split(" ")[0])+'"></label><button class="btn" data-nj="mestart">Start my own Standard</button><button class="link" data-nj="mex" style="align-self:flex-start">Remind me later</button></section>'}
+(function(){var app=document.getElementById("nm9app");if(!app)return;app.addEventListener("click",function(e){var b=e.target&&e.target.closest?e.target.closest("[data-nj]"):null;if(!b)return;if(b.getAttribute("data-nj")==="mex"){lsSet("nm9-mex",Date.now());toast("We'll remind you later. It's always in the Parent / Coach tab.");nm9Re()}})})();
 
 boot();
 })();
