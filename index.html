@@ -331,7 +331,7 @@ function lvOf(a){a=a||A();return (a&&a.level&&LEVELS[a.level])?a.level:autoLevel
 function L0(){return LEVELS[lvOf()]}
 function isPro(){return lvOf()==="pro"||!!(st.fam&&!st.fam.pin_hash)}
 function isRookie(){return lvOf()==="rookie"}
-function applyLevel(){DIMS=DIMSETS[lvOf()]||DIMSETS.varsity}
+function applyLevel(){DIMS=(typeof nm9IsMe==="function"&&nm9IsMe()&&DIMSETS.me)?DIMSETS.me:(DIMSETS[lvOf()]||DIMSETS.varsity)}
 function fitChecks(e){if(!e)return e;e.checks=e.checks||{};DIMS.forEach(function(d){var c=e.checks[d.k]||[];var o=[];for(var i=0;i<d.s.length;i++)o.push(!!c[i]);e.checks[d.k]=o});return e}
 function lvBadge(k,big){var L=LEVELS[k];return '<span class="lvb'+(big?' lg':'')+'" style="--lc:'+L.c+'"><i></i>'+L.n+'</span>'}
 var PHASES=[["Learn It",1,90],["Live It",91,180],["Build It",181,270],["Lead It",271,365]];
@@ -483,7 +483,7 @@ function gStat(g){var p=gPct(g);if(p>=100)return ["hit","Goal hit"];if(g.due_dat
 function fmtD(d){return d.toLocaleDateString(undefined,{month:"short",day:"numeric"})}
 function fmtV(v,u){if(v==null||v===""||isNaN(+v))return "–";return (Math.round(+v*100)/100)+(u?" "+u:"")}
 function curGoals(lv){var t=dk(today);if(lv==="s")return st.goals.filter(function(g){return g.level==="s"&&g.due_date>=t});var e=dk(cyc().end[lv]);return st.goals.filter(function(g){return g.level===lv&&g.due_date===e})}
-function goalHTML(g,mini){var p=gPct(g),s=gStat(g),dm=DIMS.find(function(d){return d.k===g.area}),par=g.parent_id&&st.goals.find(function(x){return x.id===g.parent_id});
+function goalHTML(g,mini){var p=gPct(g),s=gStat(g),dm=GA().find(function(d){return d.k===g.area}),par=g.parent_id&&st.goals.find(function(x){return x.id===g.parent_id});
  return '<button class="goal" data-goal="'+g.id+'"><span class="gt"><span class="gn">'+esc(g.title)+'</span><span class="gs '+s[0]+'">'+s[1]+'</span></span>'+
  '<span class="gbar" style="display:block"><i style="width:'+p+'%"></i>'+(g.kind!=="num"||s[0]==="hit"||s[0]==="miss"?'':'<b style="left:'+gPace(g)+'%"></b>')+'</span>'+
  '<span class="gm"><span>'+(g.kind==="num"?esc(fmtV(g.current_val==null?g.start_val:g.current_val,g.unit))+' &rarr; '+esc(fmtV(g.target_val,g.unit)):(g.done?'Done':'Not done yet'))+'</span><span>'+(dm?dm.n+' · ':'')+'Due '+fmtD(parse(g.due_date))+'</span></span>'+
@@ -519,10 +519,10 @@ function renderGoalForm(){
  '<section class="hero" style="grid-template-columns:1fr"><div><div class="eyebrow">'+(f.id?'Edit ':'New ')+L.n+'</div><h1 style="font-size:34px">'+L.q+'</h1></div></section>'+
  '<section class="card"><label class="f">Your goal<input type="text" id="g-title" maxlength="80" value="'+esc(f.title||'')+'" placeholder="'+esc(L.ex[0])+'"></label>'+
  '<div class="muted" style="font-size:13px">Ideas (tap one, then make it yours):</div><div class="chips">'+L.ex.map(function(x){return '<button class="chip" data-ex="'+esc(x)+'">'+esc(x)+'</button>'}).join('')+'</div></section>'+
- '<section class="card"><h3 style="font-size:20px">Which area?</h3><div class="chips">'+DIMS.map(function(d){return '<button class="chip" data-area="'+d.k+'" aria-pressed="'+(f.area===d.k)+'">'+d.n+'</button>'}).join('')+'</div></section>'+
+ '<section class="card"><h3 style="font-size:20px">Which area?</h3><div class="chips">'+GA().map(function(d){return '<button class="chip" data-area="'+d.k+'" aria-pressed="'+(f.area===d.k)+'">'+d.n+'</button>'}).join('')+'</div></section>'+
  (ups.length?'<section class="card"><h3 style="font-size:20px">This builds toward</h3><div class="chips">'+ups.map(function(u){return '<button class="chip" data-par="'+u.id+'" aria-pressed="'+(f.parent_id===u.id)+'">'+esc(u.title)+'</button>'}).join('')+'</div></section>':'')+
  '<section class="card"><h3 style="font-size:20px">How will you know you hit it?</h3><div class="seg" style="align-self:flex-start"><button data-kind="num" aria-pressed="'+(f.kind==="num")+'">A number</button><button data-kind="done" aria-pressed="'+(f.kind==="done")+'">Yes / done</button></div>'+
- (f.kind==="num"?'<div class="row3"><label class="f">Now<input type="text" inputmode="decimal" id="g-start" value="'+esc(f.start_val==null?'':f.start_val)+'" placeholder="4.9"></label><label class="f">Goal<input type="text" inputmode="decimal" id="g-target" value="'+esc(f.target_val==null?'':f.target_val)+'" placeholder="4.7"></label><label class="f">Unit<input type="text" id="g-unit" maxlength="12" value="'+esc(f.unit||'')+'" placeholder="sec"></label></div><p class="muted" style="font-size:13px">Examples: 40 time 4.9 &rarr; 4.7 sec. GPA 3.1 &rarr; 3.5. Bench 135 &rarr; 185 lbs. Lower can be better too.</p>':'<p class="muted" style="font-size:14px">You\'ll tap "Mark done" when you hit it.</p>')+
+ (f.kind==="num"?'<div class="row3"><label class="f">Now<input type="text" inputmode="decimal" id="g-start" value="'+esc(f.start_val==null?'':f.start_val)+'" placeholder="'+(nm9IsMe()?'210':'4.9')+'"></label><label class="f">Goal<input type="text" inputmode="decimal" id="g-target" value="'+esc(f.target_val==null?'':f.target_val)+'" placeholder="'+(nm9IsMe()?'185':'4.7')+'"></label><label class="f">Unit<input type="text" id="g-unit" maxlength="12" value="'+esc(f.unit||'')+'" placeholder="'+(nm9IsMe()?'lbs':'sec')+'"></label></div><p class="muted" style="font-size:13px">'+(nm9IsMe()?'Examples: Weight 210 &rarr; 185 lbs. Savings $0 &rarr; $10,000. Steps 5,000 &rarr; 10,000. Lower can be better too.':'Examples: 40 time 4.9 &rarr; 4.7 sec. GPA 3.1 &rarr; 3.5. Bench 135 &rarr; 185 lbs. Lower can be better too.')+'</p>':'<p class="muted" style="font-size:14px">You\'ll tap "Mark done" when you hit it.</p>')+
  '</section>'+
  '<p class="muted" style="font-size:14px;text-align:center">Due '+fmtD(due)+' · end of this '+({year:'year',q:'90 days',s:'60 days',m:'30 days',w:'week',d:'day'})[f.level]+'</p>'+
  '<div class="cta"><button class="btn" data-act="gsave">Save goal</button></div>'+
@@ -568,10 +568,10 @@ function cDone(d,id){var o=st.cdone[dk(d)];return !!(o&&o[id])}
 function todayChoresHTML(){return isRookie()?todayListHTML("home")+todayListHTML("train"):todayListHTML("train")+todayListHTML("home")}
 function todayListHTML(k){var all=listOf(k),cs=choresOn(today,k);
  if(k==="train"&&!all.length&&isRookie())return '';
- if(k==="train"&&!all.length)return '<button class="btn ghost" data-act="train" style="font-size:15px">+ Add my training standard <span class="muted" style="font-family:var(--fb);text-transform:none;letter-spacing:0;font-weight:500">(sport-specific daily work)</span></button>';
+ if(k==="train"&&!all.length)return '<button class="btn ghost" data-act="train" style="font-size:15px">+ Add my '+(nm9IsMe()?'fitness':'training')+' standard <span class="muted" style="font-family:var(--fb);text-transform:none;letter-spacing:0;font-weight:500">'+(nm9IsMe()?'(workouts, fuel, recovery)':'(sport-specific daily work)')+'</span></button>';
  if(!all.length)return '';
  var n=cs.filter(function(c){return cDone(today,c.id)}).length;
- return '<section class="card"><div class="dim-h"><div><div class="eyebrow">'+(k==="train"?'Training standard':(isPro()?'Life habits':'Habits &amp; chores'))+'</div><h3>'+(k==="train"?'My extra work':(isPro()?'Life standard':'Home standard'))+'</h3><small>'+(cs.length?'Tap each one when it\'s done.':'Nothing scheduled today.')+'</small></div><div style="text-align:right"><span class="sc num">'+n+'/'+cs.length+'</span>'+(k==="train"?'<br><button class="link" data-act="train" style="font-size:12.5px">Edit</button>':'')+'</div></div>'+
+ return '<section class="card"><div class="dim-h"><div><div class="eyebrow">'+(k==="train"?(nm9IsMe()?'Fitness standard':'Training standard'):(isPro()?'Life habits':'Habits &amp; chores'))+'</div><h3>'+(k==="train"?'My extra work':(isPro()?'Life standard':'Home standard'))+'</h3><small>'+(cs.length?'Tap each one when it\'s done.':'Nothing scheduled today.')+'</small></div><div style="text-align:right"><span class="sc num">'+n+'/'+cs.length+'</span>'+(k==="train"?'<br><button class="link" data-act="train" style="font-size:12.5px">Edit</button>':'')+'</div></div>'+
  cs.map(function(c){return '<button class="chk chore'+(k==="train"?' tr':'')+'" data-chore="'+c.id+'" aria-pressed="'+cDone(today,c.id)+'"><span class="box"></span>'+esc(c.title)+(k==="home"&&c.added_by?'<span class="by">'+esc(c.added_by)+'</span>':'')+'</button>'}).join('')+'</section>'}
 function rowsHTML(list){var d7=lastN(7);return list.map(function(c){var sch=0,dn=0;var dots=d7.map(function(d){var on=(!c.days||c.days.indexOf(d.getDay())>=0)&&!(c.created_at&&dk(d)<String(c.created_at).slice(0,10));if(!on)return '<i class="x" title="'+DAYN[d.getDay()]+'"></i>';sch++;var y=cDone(d,c.id);if(y)dn++;return '<i class="'+(y?'y':(dk(d)===dk(today)?'':'n'))+'" title="'+DAYN[d.getDay()]+'"></i>'}).join('');
    return '<div class="crow"><div><b style="font-size:15px">'+esc(c.title)+'</b><div class="dots">'+dots+'</div></div><span class="num mono" style="font-size:13px">'+dn+'/'+sch+'</span></div>'}).join('')}
@@ -585,8 +585,8 @@ function renderTrain(){renderList("train")}
 function renderList(k){var a=A(),preset=[["Every day",[0,1,2,3,4,5,6]],["Mon-Fri",[1,2,3,4,5]],["Weekends",[0,6]]],L=listOf(k),T=k==="train";
  var ideas=T?SPORT_IDEAS[sportKey()].concat(FUEL):(isPro()?LIFE_IDEAS:CHORE_IDEAS);
  root.innerHTML=header()+athSwitch()+
- '<section class="hero" style="grid-template-columns:1fr"><div><div class="eyebrow">'+(T?esc(a.name)+' · '+(esc(a.sport||'Athlete')):(isPro()?esc(a.name)+' · Life standard':'Parent · '+esc(a.name)))+'</div><h1 style="font-size:36px">'+(T?'My training standard':(isPro()?'Life standard':'Habits &amp; chores'))+'</h1><p>'+(T?'The extra work your position needs, on top of the daily standard. Reps, conditioning, fuel and recovery. Keep it to what you will really do.':(isPro()?'The adult habits that keep the rest of your life in order. Each one shows on your Today screen on the days you pick.':'Build the small stuff that builds the big stuff. Each item shows on '+esc(a.name)+'\'s Today screen on the days you pick.'))+'</p></div></section>'+
- '<section class="card"><label class="f">'+(T?'Add a daily rep, drill or habit':'Add a habit or chore')+'<input type="text" id="c-title" maxlength="60" placeholder="'+(T?'Throw 50 passes':'Make my bed')+'" value="'+esc(cf.title||'')+'"></label>'+
+ '<section class="hero" style="grid-template-columns:1fr"><div><div class="eyebrow">'+(T?esc(a.name)+' · '+(esc(a.sport||'Athlete')):(isPro()?esc(a.name)+' · Life standard':'Parent · '+esc(a.name)))+'</div><h1 style="font-size:36px">'+(T?(nm9IsMe()?'My fitness standard':'My training standard'):(isPro()?'Life standard':'Habits &amp; chores'))+'</h1><p>'+(T?(nm9IsMe()?'Your workouts, fuel and recovery, on top of the daily standard. Keep it to what you will really do.':'The extra work your position needs, on top of the daily standard. Reps, conditioning, fuel and recovery. Keep it to what you will really do.'):(isPro()?'The adult habits that keep the rest of your life in order. Each one shows on your Today screen on the days you pick.':'Build the small stuff that builds the big stuff. Each item shows on '+esc(a.name)+'\'s Today screen on the days you pick.'))+'</p></div></section>'+
+ '<section class="card"><label class="f">'+(T?'Add a daily rep, drill or habit':'Add a habit or chore')+'<input type="text" id="c-title" maxlength="60" placeholder="'+(T?(nm9IsMe()?'Workout 45 min':'Throw 50 passes'):(isPro()?'Read 10 min':'Make my bed'))+'" value="'+esc(cf.title||'')+'"></label>'+
  '<div class="muted" style="font-size:13px">Quick picks'+(T?' for '+esc(a.sport||'your sport'):'')+' (tap, then edit the number if you want):</div><div class="chips">'+ideas.filter(function(x){return !L.some(function(c){return c.title===x})}).map(function(x){return '<button class="chip" data-cidea="'+esc(x)+'">'+esc(x)+'</button>'}).join('')+'</div>'+
  '<div class="muted" style="font-size:13px">Which days?</div><div class="chips">'+preset.map(function(p){return '<button class="chip" data-cpre="'+p[1].join(',')+'" aria-pressed="'+(cf.days.join(',')===p[1].join(','))+'">'+p[0]+'</button>'}).join('')+'</div>'+
  '<div class="chips">'+DAYN.map(function(n,i){return '<button class="chip" data-cday="'+i+'" aria-pressed="'+(cf.days.indexOf(i)>=0)+'">'+n+'</button>'}).join('')+'</div>'+
@@ -826,9 +826,9 @@ function gfHabLbl(k){return {train:"Training standard",am:"Morning routine",pm:"
 function renderFinder(){var a=A(),R=isRookie(),s=fd.step,ar=fd.areas,body="";
  var dots='<div class="idots" style="justify-content:flex-start">'+[0,1,2,3].map(function(j){var cur=s===0?0:s===1?1:s==="why"?2:s==="plan"?3:1;return '<i class="'+(j===cur?'on':'')+'"></i>'}).join('')+'</div>';
  if(s===0){body='<section class="hero" style="grid-template-columns:1fr"><div><div class="eyebrow">Goal Finder · '+esc(a.name)+'</div><h1>Find your goals</h1><p>'+(R?'Pick where you want to get better. We will turn it into one 30-day goal and the daily habits that get you there.':'Not sure what to aim for? Pick the areas that matter most, answer a few questions, and we will build your 1-year, 90-day and 30-day goals plus the daily habits that get you there.')+'</p></div></section>'+dots+
-  '<section class="card"><h2>Where do you want to win?</h2><small class="muted">Pick 1 to 3 areas. You can run the Goal Finder again any time.</small><div class="gfa">'+DIMS.map(function(d){var on=ar.indexOf(d.k)>=0;return '<button class="gfopt" data-gfa="'+d.k+'" aria-pressed="'+on+'"><b>'+d.n+'</b><span>'+d.d+'</span></button>'}).join('')+'</div></section>'+
+  '<section class="card"><h2>Where do you want to win?</h2><small class="muted">Pick the areas you want to win in, up to all 6. You can run the Goal Finder again any time.</small><div class="gfa">'+GA().map(function(d){var on=ar.indexOf(d.k)>=0;return '<button class="gfopt" data-gfa="'+d.k+'" aria-pressed="'+on+'"><b>'+d.n+'</b><span>'+d.d+'</span></button>'}).join('')+'</div></section>'+
   '<div class="cta"><button class="btn" data-act="gfnext">Next</button></div>'}
- else if(s===1){var k=ar[fd.ai],dm=DIMS.find(function(d){return d.k===k}),pk=fd.picks[k],tp=gfTpls(k),T=tp.find(function(x){return x.k===pk});
+ else if(s===1){var k=ar[fd.ai],dm=GA().find(function(d){return d.k===k}),pk=fd.picks[k],tp=gfTpls(k),T=tp.find(function(x){return x.k===pk});
   body='<section class="hero" style="grid-template-columns:1fr"><div><div class="eyebrow">Goal Finder · Area '+(fd.ai+1)+' of '+ar.length+'</div><h1>'+dm.n+'</h1><p>'+dm.d+'</p></div></section>'+dots+
   '<section class="card gfq"><div class="eyebrow">Ask yourself</div><ul class="tips">'+(nm9IsMe()&&GF_QA[k]?GF_QA[k]:GF_Q[k]).map(function(q){return '<li>'+q+'</li>'}).join('')+'</ul></section>'+
   '<section class="card"><h2>What do you want to work on?</h2><div class="gfa">'+tp.map(function(t){return '<button class="gfopt" data-gfp="'+t.k+'" aria-pressed="'+(t.k===pk)+'"><b>'+t.n+'</b><span>'+t.d+'</span></button>'}).join('')+'</div>'+
@@ -839,7 +839,7 @@ function renderFinder(){var a=A(),R=isRookie(),s=fd.step,ar=fd.areas,body="";
   '<div class="cta"><div class="row2"><button class="btn ghost" data-act="gfback">Back</button><button class="btn" data-act="gfnext">Build my plan</button></div></div>'}
  else if(s==="plan"){var P=ar.map(gfPlan).filter(Boolean);fd.plan=P;
   body='<section class="hero" style="grid-template-columns:1fr"><div><div class="eyebrow">Goal Finder · Your plan</div><h1>Here is your plan</h1><p>'+(R?'One 30-day goal for each area, and the daily habits that get you there.':'Each area breaks down from a 1-year goal to 90 days to 30 days, with the daily habits that make it happen.')+' Untick anything you do not want. Every number can be changed later.</p></div></section>'+dots+
-  P.map(function(p,i){var dm=DIMS.find(function(d){return d.k===ar[i]});return '<section class="card"><div class="dim-h"><div><div class="eyebrow">'+dm.n+'</div><h3>'+p.t.n+'</h3></div></div>'+
+  P.map(function(p,i){var dm=GA().find(function(d){return d.k===ar[i]});return '<section class="card"><div class="dim-h"><div><div class="eyebrow">'+dm.n+'</div><h3>'+p.t.n+'</h3></div></div>'+
    '<div class="gfl">'+p.goals.map(function(g,j){var id="g"+i+"_"+j,on=fd.keep[id]!==false;return '<button class="gfrow" data-gfk="'+id+'" aria-pressed="'+on+'"><span class="box"></span><span><span class="gtag" style="margin:0">'+LV[g.lv].n+'</span><b>'+esc(g.title)+'</b></span></button>'}).join('')+'</div>'+
    '<div class="eyebrow" style="margin-top:4px">Daily habits that get you there</div><div class="gfl">'+p.habits.map(function(h,j){var id="h"+i+"_"+j,on=fd.keep[id]!==false,dl=h.days.length===7?'Every day':h.days.join(',')==='1,2,3,4,5'?'Mon-Fri':h.days.map(function(x){return DAYN[x]}).join(' ');return '<button class="gfrow" data-gfk="'+id+'" aria-pressed="'+on+'"><span class="box"></span><span><span class="gtag" style="margin:0">'+gfHabLbl(h.kind)+' · '+dl+'</span><b>'+esc(h.title)+'</b></span></button>'}).join('')+'</div></section>'}).join('')+
   (fd.why?'<section class="note"><div class="eyebrow">My why</div><p>'+esc(fd.why)+'</p></section>':'')+
@@ -1007,7 +1007,7 @@ var GUIDE=function(){var lk=lvOf(),L=LEVELS[lk],R=lk==="rookie",P=isPro(),nm=esc
  ["The daily check-in",'<p>Five areas: Physical, Mental, Spiritual, Emotional and Future. '+(R?'Each has one simple check.':'Each has two standards to check.')+' Then rate how you did, 1 to 5.</p><p><b>Scoring:</b> checks are worth half the area score and your rating the other half. Your day score is the average of the five areas. 80+ is the standard, 60-79 is a solid day, under 60 means find one area to push tomorrow.</p><p>Add a <b>Win of the day</b>, then tap <b>Lock in today</b>. You can update it until midnight.</p>'],
  ["Morning and night routines",'<p>Tap <b>Build my AM and PM routine</b> on Today. Load the NM9 starter or build your own from quick picks, and use the arrows to put the steps in order.</p><p>The routine that matters right now opens at the top of Today (morning before 2 PM, night after). Finish every step for a routine streak. 7, 21 and 66 days earn habit badges.</p>'],
  ["Mindset",'<p>Tap <b>Mindset</b> on Today. Six sessions: <b>Lock In</b> (box breathing before games and tests), <b>Calm Down</b> (after a mistake or stress), <b>Wind Down</b> (bedtime), <b>Be Still</b> (breathe with scripture), <b>See It First</b> (game-day visualization) and <b>Next Play</b> (a 30-second in-game reset). Follow the circle: it grows as you breathe in and shrinks as you breathe out. Minutes and streaks count, and parents see the week.</p><p>Breathe gently through your nose. If you feel dizzy, stop and breathe normally.</p>'],
- ["Goal Finder",'<p>Not sure what your goals should be? Tap <b>Find my goals</b> on the Goals tab. Pick up to 3 areas (Physical, Mental, Spiritual, Emotional, Future), answer the questions, and write your why. '+(R?'You get a 30-day goal for each area':'You get a 1-year, 90-day and 30-day goal for each area')+' plus the daily habits that get you there, added to your routines and lists in one tap.</p>'],
+ ["Goal Finder",'<p>Not sure what your goals should be? Tap <b>Find my goals</b> on the Goals tab. Pick up to 6 areas (Physical, Mental, Spiritual, Emotional, Financial, Future), answer the questions, and write your why. '+(R?'You get a 30-day goal for each area':'You get a 1-year, 90-day and 30-day goal for each area')+' plus the daily habits that get you there, added to your routines and lists in one tap.</p>'],
  ["Goals",R?'<p>Rookies keep it simple: one 30-day goal. Add a weekly or daily goal only if it helps.</p><p>Pick something winnable, like reading 10 books or making the bed every day. Check it together every Sunday.</p>':'<p>Start with one 1-year goal. Break it into 90-day goals, then 30-day goals. Optional: 60-day, weekly and daily goals.</p><p>Number goals (like a 4.7 forty) show a pace line so you can see if you are on track. Update your number once a week.</p>'],
  [R?"Home habits and chores":P?"Life standard":"Training standard and home habits",R?'<p>Parents add the home habits from the Parent view: make the bed, brush teeth, laundry, homework before screens. They show up on Today on the days you pick.</p>':P?'<p>Add the adult habits that keep life in order: meal prep, budget, bills, call home. Open them from your weekly review.</p><p>Your <b>training standard</b> holds your sport-specific extra work: reps, conditioning, fuel and recovery.</p>':'<p><b>Training standard:</b> the extra work your sport and position need, like throws, jump rope, water and protein. Add it from Today.</p><p><b>Home standard:</b> parents add habits and chores from the Parent view.</p>'],
  ["Streaks and milestones",'<p>Check in every day to build your streak. Milestone badges unlock at 3, 7, 21, 30 and 90 days. Your 365-day journey runs through four phases: Learn It, Live It, Build It and Lead It.</p>'],
@@ -1059,7 +1059,7 @@ var email="";
 document.getElementById("nm9app").addEventListener("click",async function(e){
   var t=e.target.closest("[data-act],.chk,[data-r],[data-goal],[data-ex],[data-area],[data-par],[data-kind],[data-chore],[data-cidea],[data-cpre],[data-cday],[data-cdel],[data-ridea],[data-rup],[data-gfa],[data-gfp],[data-gfk],[data-ms]");if(!t)return;
   if(t.dataset.ms){var sx=msOf(t.dataset.ms);mp={k:sx.k,len:msLen(sx),snd:lsGet("nm9-msnd")!==0,vib:!!lsGet("nm9-mvib"),wi:Math.floor(Math.random()*7),started:false,paused:false,acc:0};st.view="mplay";window.scrollTo(0,0);renderMPlay();return}
-  if(t.dataset.gfa){var ga=t.dataset.gfa,gi=fd.areas.indexOf(ga);if(gi>=0)fd.areas.splice(gi,1);else if(fd.areas.length<3)fd.areas.push(ga);else{toast("Pick up to 3 areas");return}fd.areas=DIMS.map(function(d){return d.k}).filter(function(k){return fd.areas.indexOf(k)>=0});keep(renderFinder);return}
+  if(t.dataset.gfa){var ga=t.dataset.gfa,gi=fd.areas.indexOf(ga);if(gi>=0)fd.areas.splice(gi,1);else if(fd.areas.length<6)fd.areas.push(ga);else{toast("Pick up to 6 areas");return}fd.areas=GA().map(function(d){return d.k}).filter(function(k){return fd.areas.indexOf(k)>=0});keep(renderFinder);return}
   if(t.dataset.gfp){gfSync();fd.picks[fd.areas[fd.ai]]=t.dataset.gfp;keep(renderFinder);return}
   if(t.dataset.gfk){fd.keep[t.dataset.gfk]=fd.keep[t.dataset.gfk]===false;keep(renderFinder);return}
   if(t.classList.contains("chk")&&!t.dataset.chore){var k=t.dataset.k,i=+t.dataset.i;st.draft.checks[k][i]=!st.draft.checks[k][i];keep(renderAth);return}
@@ -1281,7 +1281,7 @@ function nm9GTermName(){var d=new Date(),m=d.getMonth(),y=d.getFullYear();return
 async function nm9GLoad(){var a=A();if(!a)return;var d=null;try{if(!LIVE)throw 0;var r=await sb.from("gpa").select("data").eq("athlete_id",a.id).maybeSingle();if(r.error)throw r.error;d=(r.data&&r.data.data)||null}catch(e){d=lsGet("nm9-gpa-"+a.id)}
 if(!d||!d.terms)d={terms:[],target:null};gpa[a.id]=d;nm9Re()}
 function nm9GCalc(d,ti){var pu=0,pw=0,cr=0,n=0;(d.terms||[]).forEach(function(t,i){if(ti!=null&&i!==ti)return;(t.c||[]).forEach(function(c){if(!(c.g in GPTS))return;var k=+c.cr||1,b=GPTS[c.g],bw=b>0?b+((GLV[c.t]||GLV.reg)[1]):0;pu+=b*k;pw+=bw*k;cr+=k;n++})});return {uw:cr?pu/cr:0,w:cr?pw/cr:0,cr:cr,n:n}}
-function nm9GCardHTML(){var a=A();if(!a)return '';if(gpa[a.id]===undefined){gpa[a.id]=null;setTimeout(nm9GLoad,0);return ''}var d=gpa[a.id];if(!d)return '';var c=nm9GCalc(d);
+function nm9GCardHTML(){var a=A();if(!a||nm9IsMe())return '';if(gpa[a.id]===undefined){gpa[a.id]=null;setTimeout(nm9GLoad,0);return ''}var d=gpa[a.id];if(!d)return '';var c=nm9GCalc(d);
 return '<section class="card"><div class="dim-h"><div><div class="eyebrow">Future &middot; GPA</div><h3>'+(c.n?'GPA <span class="num">'+c.uw.toFixed(2)+'</span>':'Know your GPA')+'</h3><small>'+(c.n?'Weighted '+c.w.toFixed(2)+' &middot; '+c.n+' classes'+(d.target?' &middot; Goal '+(+d.target).toFixed(2):''):'Add your classes and grades. See exactly where you stand.')+'</small></div><span class="mico">&#127891;</span></div><button class="btn ghost" data-nj="gpa">'+(c.n?'Update my grades':'Open GPA calculator')+'</button></section>'}
 function nm9GParHTML(){var a=A();if(!a)return '';if(gpa[a.id]===undefined){gpa[a.id]=null;setTimeout(nm9GLoad,0);return ''}var d=gpa[a.id];if(!d)return '';var c=nm9GCalc(d);if(!c.n)return '<section class="card"><div class="eyebrow">GPA</div><h3>No grades yet</h3><small class="muted">'+esc(a.name)+' can add classes in the GPA calculator on the Today screen.</small></section>';
 var t=(d.terms||[]).length?nm9GCalc(d,d.terms.length-1):null;return '<section class="card"><div class="eyebrow">GPA</div><h3>'+c.uw.toFixed(2)+' unweighted &middot; '+c.w.toFixed(2)+' weighted</h3><small class="muted">'+c.n+' classes'+(t&&t.n?' &middot; '+esc(d.terms[d.terms.length-1].n)+': '+t.uw.toFixed(2):'')+(d.target?' &middot; Goal '+(+d.target).toFixed(2):'')+'</small></section>'}
@@ -1413,7 +1413,7 @@ function gfCustomHTML(k){var c=gfCust(k);return '<div style="display:flex;flex-d
 '<label class="f">A daily habit that gets me there (optional)<input type="text" id="gfc-h" maxlength="60" placeholder="e.g. Run 20 minutes" value="'+esc(c.h)+'"></label></div>'}
 function gfCustSync(){if(!fd||fd.step!==1)return;var k=fd.areas[fd.ai];if(fd.picks[k]!=="custom")return;var c=gfCust(k),v=function(id){var e=document.getElementById(id);return e?e.value.trim():null};
 ["t","c","g","u","h"].forEach(function(f){var x=v("gfc-"+f);if(x!=null)c[f]=x})}
-function gfCustomPlan(a){var c=gfCust(a),dm=DIMS.find(function(d){return d.k===a}),title=c.t||("My "+(dm?dm.n:"")+" goal"),R=isRookie(),o={t:{n:title},goals:[],habits:[]};
+function gfCustomPlan(a){var c=gfCust(a),dm=GA().find(function(d){return d.k===a}),title=c.t||("My "+(dm?dm.n:"")+" goal"),R=isRookie(),o={t:{n:title},goals:[],habits:[]};
 var cur=parseFloat(c.c),tgt=parseFloat(c.g),u=c.u||"";
 if(!isNaN(cur)&&!isNaN(tgt)&&cur!==tgt){var dec=(String(c.c)+String(c.g)).indexOf(".")>=0?1:0,rd=function(v){var p=Math.pow(10,dec);return Math.round(v*p)/p};
 var q=rd(cur+(tgt-cur)*.4),m=rd(cur+(tgt-cur)*.15);if(m===cur)m=rd(cur+(tgt>cur?1:-1)*(dec?0.1:1));
@@ -1432,6 +1432,49 @@ pm:["Plan tomorrow's top 3","Phone away during family time","Pray with my family
 pmi:["Gratitude + Daily Download","Talk with my spouse","Ask my kids about their day","Lay out tomorrow's clothes","No screens 30 min before bed","Vitamins"]};
 SPORT_IDEAS.me=["Workout 45 min","Walk 20 min","10,000 steps","Stretch or mobility 10 min","Cardio 30 min","Strength training","Drink 100 oz of water","Protein with every meal","No sugar today","Sleep 7+ hours"];
 function nm9ApplyMe(){var me=nm9IsMe(),S=me?RT_ME:RT_ATH;RT.am.start=S.am;RT.am.ideas=S.ami;RT.pm.start=S.pm;RT.pm.ideas=S.pmi}
+
+
+/* ===== v21b: parent/coach examples + adult daily standard (Fitness, Mind, Faith, Family, Future) ===== */
+DIMSETS.me=[
+{k:"physical",n:"Fitness",d:"Move, fuel, rest",s:["Moved or worked out today","Ate well and drank my water"]},
+{k:"mental",n:"Mind",d:"Focus, learn, be present",s:["Read or learned something","Fully present at work"]},
+{k:"spiritual",n:"Faith",d:"Prayer, gratitude, purpose",s:["Prayer or scripture time","Thanked God for one thing today"]},
+{k:"emotional",n:"Family",d:"Lead, love, serve",s:["Fully present with my family","Encouraged my spouse or kids"]},
+{k:"future",n:"Future",d:"Work, money, vision",s:["Handled my work and money","One step toward my long-term vision"]}];
+var LV_ATH={},LV_ME={year:["Lose 25 lbs","Pay off $10,000 of debt","Read 12 books","Run a half marathon","Lead my family in faith"],
+q:["Lose 10 lbs","Save $2,500","Date night every week","Work out 4 times a week","Finish one big work project"],
+s:["Lose 7 lbs","Save $1,500","Read 2 books","No fast food","Land one new client"],
+m:["Work out 3 times a week","Phone-free family dinners","Save $800","Pray with my family weekly","Bed by 10:30"],
+w:["Work out 3 times","Date night","Make every one of my kid's games","Read 3 chapters","Plan next week on Sunday"],
+d:["Workout done","Encourage my kids","Close one deal","No sugar today","Call my mom"]};
+Object.keys(LV).forEach(function(k){LV_ATH[k]=LV[k].ex});
+var nm9ApplyMe0=nm9ApplyMe;
+nm9ApplyMe=function(){nm9ApplyMe0();var me=nm9IsMe();Object.keys(LV).forEach(function(k){LV[k].ex=me&&LV_ME[k]?LV_ME[k]:LV_ATH[k]})};
+
+
+/* ===== v21c: six goal areas (Physical, Mental, Spiritual, Emotional, Financial, Future), up to 6 goals per level ===== */
+var GA_FIN={k:"financial",n:"Financial",d:"Save, earn, give"};
+function GA(){return DIMS.some(function(d){return d.k==="financial"})?DIMS:DIMS.concat([GA_FIN])}
+Object.keys(LV).forEach(function(k){LV[k].max=6});
+DIMSETS.me=[
+{k:"physical",n:"Physical",d:"Move, fuel, rest",s:["Moved or worked out today","Ate well and drank my water"]},
+{k:"mental",n:"Mental",d:"Focus, learn, be present",s:["Read or learned something","Fully present at work"]},
+{k:"spiritual",n:"Spiritual",d:"Prayer, gratitude, purpose",s:["Prayer or scripture time","Thanked God for one thing today"]},
+{k:"emotional",n:"Emotional",d:"Family, patience, presence",s:["Fully present with my family","Encouraged my spouse or kids"]},
+{k:"future",n:"Future",d:"Work, money, vision",s:["Handled my work and money","One step toward my long-term vision"]}];
+GF_Q.financial=["Do you save any of the money you get or earn?","What do you spend the most money on?","What would you do with $1,000 you earned yourself?"];
+GF_QA.financial=["Where do you want to be financially in 3 years?","Do you know where your money goes every month?","What would being debt-free change for your family?"];
+GF_T.financial=[
+{k:"money",n:"Build money habits",d:"Save and budget",kind:"cnt",unit:"$ saved",y:2000,q:500,m:150,ry:200,rq:50,rm:15,t:"Save ${y} this year",tq:"Save ${q} in 90 days",tm:"Save ${m} this month",h:[["home","Check my budget",[0]],["home","Save first, spend second",[5]]]},
+{k:"earn",n:"Earn my own money",d:"Job, side hustle, business",kind:"cnt",unit:"$ earned",y:3000,q:750,m:250,ry:300,rq:75,rm:25,t:"Earn ${y} this year",tq:"Earn ${q} in 90 days",tm:"Earn ${m} this month",h:[["home","One action that earns money",WK]]},
+{k:"give",n:"Give and tithe",d:"Generous with what I have",kind:"done",t:"Give 10% of what I earn all year",tq:"Give or tithe every time I get paid for 90 days",tm:"Give something every week this month",h:[["home","Set aside my giving",[0]]]},
+{k:"learn$",n:"Learn about money",d:"Money smarts",kind:"cnt",unit:"lessons",y:24,q:6,m:2,ry:12,rq:3,rm:1,t:"Finish {y} money lessons this year",tq:"Finish {q} money lessons in 90 days",tm:"Finish {m} money lessons this month",h:[["pm","Read or watch 10 min about money",[2,4]]],lv:["varsity","elite","pro"]}];
+GF_T.future=GF_T.future.filter(function(t){return t.k!=="money"});
+GF_ADULT.financial=GF_ADULT.future.filter(function(t){return ["a_save","a_debt","a_income"].indexOf(t.k)>=0}).concat([
+{k:"a_budget",n:"Run a monthly budget",d:"Tell every dollar where to go",kind:"done",t:"Budget every month this year",tq:"Monthly budget meeting for 90 days",tm:"Track every dollar this month",h:[["home","Check my budget",[0]]]},
+{k:"a_give",n:"Give and tithe",d:"Generous with what I have",kind:"done",t:"Tithe and give consistently all year",tq:"Give every paycheck for 90 days",tm:"Set up automatic giving this month",h:[["home","Set aside my giving",[0]]]}]);
+GF_ADULT.future=GF_ADULT.future.filter(function(t){return ["a_save","a_debt","a_income"].indexOf(t.k)<0}).concat([
+{k:"a_vision",n:"Write my 5-year vision",d:"Know where you're going",kind:"done",t:"Live by a written 5-year vision",tq:"Write and share my 5-year vision",tm:"Review my vision every Sunday this month",h:[["home","Review my vision",[0]]]}]);
 
 boot();
 })();
