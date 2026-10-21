@@ -559,7 +559,7 @@ var SPORT_IDEAS={
  soccer:["Juggling: 100 touches","Wall passes: 200","Shooting: 50 shots","Sprints: 10 x 30 yd","Agility ladder 10 min","Film study 15 min"],
  track:["Warm-up and drills 15 min","Strides: 6 x 100 m","Core: 50 reps","Mobility 10 min","Plyos 10 min","Ice / recover 15 min"],
  other:["Skill work 30 min","Jump rope 5 min","Sprints: 10 x 20 yd","Core: 50 reps","Film or study 15 min","Mobility 10 min"]};
-function sportKey(){var sp=((A()&&A().sport)||"").toLowerCase();if(/qb|quarter/.test(sp))return "qb";if(/foot/.test(sp))return "football";if(/basket/.test(sp))return "basketball";if(/base|soft/.test(sp))return "baseball";if(/soccer|futbol/.test(sp))return "soccer";if(/track|run|cross/.test(sp))return "track";return "other"}
+function sportKey(){if(nm9IsMe())return "me";var sp=((A()&&A().sport)||"").toLowerCase();if(/qb|quarter/.test(sp))return "qb";if(/foot/.test(sp))return "football";if(/basket/.test(sp))return "basketball";if(/base|soft/.test(sp))return "baseball";if(/soccer|futbol/.test(sp))return "soccer";if(/track|run|cross/.test(sp))return "track";return "other"}
 var DAYN=["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
 function kOf(c){return c.kind||"home"}
 function choresOn(d,k){var w=d.getDay();return st.chores.filter(function(c){return kOf(c)===(k||"home")&&(!c.days||c.days.indexOf(w)>=0)})}
@@ -631,7 +631,7 @@ function renderRoutine(k){var a=A(),R=RT[k],L=listOf(k),s=rStreak(k),d14=lastN(1
  root.innerHTML=header()+athSwitch()+
  '<section class="hero" style="grid-template-columns:1fr"><div><div class="eyebrow">'+esc(a.name)+' · Habit builder</div><h1 style="font-size:36px">My '+R.s+' routine</h1><p>'+(k==="am"?'The same steps, in the same order, every morning. Keep it short enough to finish.':'Wind down the same way every night. Recover, reset, rest.')+'</p></div></section>'+
  '<div class="seg" style="align-self:flex-start"><button data-act="rt" data-k="am" aria-pressed="'+(k==="am")+'">Morning</button><button data-act="rt" data-k="pm" aria-pressed="'+(k==="pm")+'">Night</button></div>'+
- (L.length?'':'<section class="card"><h2>Start fast</h2><p class="muted" style="font-size:14.5px">Load the NM9 starter '+(k==="am"?'morning':'night')+' routine ('+R.start.length+' steps). It\'s built from a real NM9 athlete\'s routine. Remove or change anything after.</p><button class="btn" data-act="rstart" data-k="'+k+'">Use the NM9 starter routine</button><p class="muted" style="font-size:13px;text-align:center">or build your own below</p></section>')+
+ (L.length?'':'<section class="card"><h2>Start fast</h2><p class="muted" style="font-size:14.5px">Load the NM9 starter '+(k==="am"?'morning':'night')+' routine ('+R.start.length+' steps). '+(nm9IsMe()?'Built for busy parents and coaches.':'It\'s built from a real NM9 athlete\'s routine.')+' Remove or change anything after.</p><button class="btn" data-act="rstart" data-k="'+k+'">Use the NM9 starter routine</button><p class="muted" style="font-size:13px;text-align:center">or build your own below</p></section>')+
  '<section class="card"><label class="f">Add a step<input type="text" id="r-title" maxlength="60" placeholder="'+(k==="am"?'Stretch 5 min':'Read 10 min')+'" value="'+esc(rf.title||'')+'"></label>'+
  '<div class="muted" style="font-size:13px">Quick picks:</div><div class="chips">'+R.start.concat(R.ideas).filter(function(x){return !L.some(function(c){return c.title===x})}).slice(0,10).map(function(x){return '<button class="chip" data-ridea="'+esc(x)+'">'+esc(x)+'</button>'}).join('')+'</div>'+
  '<button class="btn ghost" data-act="radd" data-k="'+k+'">Add step</button></section>'+
@@ -810,7 +810,7 @@ var GF_T={
 var fd=null;
 function gfTpls(a){var lk=lvOf();return GF_T[a].filter(function(t){return !t.lv||t.lv.indexOf(lk)>=0})}
 function gfRound(v,dec){var p=Math.pow(10,dec);return Math.round(v*p)/p}
-function gfPlan(a){var t=GF_T[a].find(function(x){return x.k===fd.picks[a]});if(!t)return null;var R=isRookie(),o={t:t,goals:[],habits:[]};
+function gfPlan(a){if(fd.picks[a]==="custom")return gfCustomPlan(a);var t=gfTpls(a).find(function(x){return x.k===fd.picks[a]});if(!t)return null;var R=isRookie(),o={t:t,goals:[],habits:[]};
  var mk=function(lv,title,kind,sv,tv,unit){o.goals.push({lv:lv,title:title,kind:kind,start_val:sv,target_val:tv,unit:unit})};
  if(t.kind==="num"){var cur=num(fd.cur[a]);if(isNaN(cur))cur=t.ex;var y=cur+t.dlt,q=cur+t.dlt*.4,m=cur+t.dlt*.15;if(t.cap){y=Math.min(t.cap,y);q=Math.min(t.cap,q);m=Math.min(t.cap,m)}
    y=gfRound(y,t.dec);q=gfRound(q,t.dec);m=gfRound(m,t.dec);if(t.dec===0&&m===cur)m=cur+(t.dlt>0?1:-1);var f=function(s,v){return s.replace("{y}",y).replace("{q}",q).replace("{m}",m)};
@@ -830,12 +830,12 @@ function renderFinder(){var a=A(),R=isRookie(),s=fd.step,ar=fd.areas,body="";
   '<div class="cta"><button class="btn" data-act="gfnext">Next</button></div>'}
  else if(s===1){var k=ar[fd.ai],dm=DIMS.find(function(d){return d.k===k}),pk=fd.picks[k],tp=gfTpls(k),T=tp.find(function(x){return x.k===pk});
   body='<section class="hero" style="grid-template-columns:1fr"><div><div class="eyebrow">Goal Finder · Area '+(fd.ai+1)+' of '+ar.length+'</div><h1>'+dm.n+'</h1><p>'+dm.d+'</p></div></section>'+dots+
-  '<section class="card gfq"><div class="eyebrow">Ask yourself</div><ul class="tips">'+GF_Q[k].map(function(q){return '<li>'+q+'</li>'}).join('')+'</ul></section>'+
+  '<section class="card gfq"><div class="eyebrow">Ask yourself</div><ul class="tips">'+(nm9IsMe()&&GF_QA[k]?GF_QA[k]:GF_Q[k]).map(function(q){return '<li>'+q+'</li>'}).join('')+'</ul></section>'+
   '<section class="card"><h2>What do you want to work on?</h2><div class="gfa">'+tp.map(function(t){return '<button class="gfopt" data-gfp="'+t.k+'" aria-pressed="'+(t.k===pk)+'"><b>'+t.n+'</b><span>'+t.d+'</span></button>'}).join('')+'</div>'+
-  (T&&T.kind==="num"?'<label class="f">'+T.label+'<input type="text" inputmode="decimal" id="gf-cur" placeholder="e.g. '+T.ex+'" value="'+esc(fd.cur[k]==null?'':fd.cur[k])+'"></label><small class="muted" style="font-size:12.5px">Not sure? Leave it blank and we will use a typical starting point. You can change every number later.</small>':'')+'</section>'+
+  (T&&T.k==="custom"?gfCustomHTML(k):'')+(T&&T.kind==="num"?'<label class="f">'+T.label+'<input type="text" inputmode="decimal" id="gf-cur" placeholder="e.g. '+T.ex+'" value="'+esc(fd.cur[k]==null?'':fd.cur[k])+'"></label><small class="muted" style="font-size:12.5px">Not sure? Leave it blank and we will use a typical starting point. You can change every number later.</small>':'')+'</section>'+
   '<div class="cta"><div class="row2"><button class="btn ghost" data-act="gfback">Back</button><button class="btn" data-act="gfnext">Next</button></div></div>'}
  else if(s==="why"){body='<section class="hero" style="grid-template-columns:1fr"><div><div class="eyebrow">Goal Finder · Your why</div><h1>Why does this matter?</h1><p>Goals without a why fade by week three. Write yours in one or two sentences. It shows at the top of your goals to keep you honest.</p></div></section>'+dots+
-  '<section class="card"><ul class="tips"><li>Who are you doing this for?</li><li>What will be different in your life when you hit it?</li><li>What happens if you do nothing?</li></ul><label class="f">My why<textarea id="gf-why" rows="3" maxlength="240" placeholder="'+(R?'I want to make my family proud and be the hardest worker on my team.':'I want to earn a scholarship so my parents never have to pay for my school, and prove that faith and work win.')+'">'+esc(fd.why||'')+'</textarea></label></section>'+
+  '<section class="card"><ul class="tips"><li>Who are you doing this for?</li><li>What will be different in your life when you hit it?</li><li>What happens if you do nothing?</li></ul><label class="f">My why<textarea id="gf-why" rows="3" maxlength="240" placeholder="'+(nm9IsMe()?'I want to be the example my kids follow: healthy, present and faithful.':R?'I want to make my family proud and be the hardest worker on my team.':'I want to earn a scholarship so my parents never have to pay for my school, and prove that faith and work win.')+'">'+esc(fd.why||'')+'</textarea></label></section>'+
   '<div class="cta"><div class="row2"><button class="btn ghost" data-act="gfback">Back</button><button class="btn" data-act="gfnext">Build my plan</button></div></div>'}
  else if(s==="plan"){var P=ar.map(gfPlan).filter(Boolean);fd.plan=P;
   body='<section class="hero" style="grid-template-columns:1fr"><div><div class="eyebrow">Goal Finder · Your plan</div><h1>Here is your plan</h1><p>'+(R?'One 30-day goal for each area, and the daily habits that get you there.':'Each area breaks down from a 1-year goal to 90 days to 30 days, with the daily habits that make it happen.')+' Untick anything you do not want. Every number can be changed later.</p></div></section>'+dots+
@@ -845,7 +845,7 @@ function renderFinder(){var a=A(),R=isRookie(),s=fd.step,ar=fd.areas,body="";
   (fd.why?'<section class="note"><div class="eyebrow">My why</div><p>'+esc(fd.why)+'</p></section>':'')+
   '<div class="cta"><div class="row2"><button class="btn ghost" data-act="gfback">Back</button><button class="btn" data-act="gfsave">Save my plan</button></div></div>'}
  root.innerHTML=header()+athSwitch()+body+foot()}
-function gfSync(){var c=$("#gf-cur");if(c&&fd.step===1)fd.cur[fd.areas[fd.ai]]=c.value;var w=$("#gf-why");if(w)fd.why=w.value.trim()}
+function gfSync(){gfCustSync();var c=$("#gf-cur");if(c&&fd.step===1)fd.cur[fd.areas[fd.ai]]=c.value;var w=$("#gf-why");if(w)fd.why=w.value.trim()}
 async function gfSave(btn){var P=fd.plan||[],made=0,hab=0,skip=0;btn.disabled=true;btn.textContent="Saving…";
  for(var i=0;i<P.length;i++){var p=P[i],parent=null,area=fd.areas[i];
   for(var j=0;j<p.goals.length;j++){var g=p.goals[j];if(fd.keep["g"+i+"_"+j]===false)continue;
@@ -1032,7 +1032,7 @@ function renderLevelUp(){var lk=lvOf(),L=LEVELS[lk];
 var TIPS=["Tip: check in at the same time every day. After practice or before bed works best.","Tip: honest beats perfect. A real score shows you exactly where to push.","Tip: do your night routine first, then the check-in. It takes 60 seconds.","Tip: set one 30-day goal today. Tap Goals at the top.","Tip: add the app to your home screen so it opens like an app.","Tip: Sunday is review day. Update your goal numbers and pick one focus.","Tip: 7 days in a row unlocks your first big badge. Keep the streak alive."];
 function tipHTML(){if(lsGet("nm9-tips-off"))return '';var n=dayNum();if(n>7)return '';return '<div class="tip"><span>'+TIPS[(n-1)%TIPS.length]+'</span><button class="link" data-act="guide">How it works</button><button class="tipx" data-act="tipoff" aria-label="Hide tips">&times;</button></div>'}
 function introKey(){return "nm9-intro-"+(A()?A().id:"x")}
-async function go(v){
+async function go(v){try{nm9ApplyMe()}catch(e){}
   setTimeout(nm9Notify,1500);
   st.view=v;window.scrollTo(0,0);
   if(v==="par"&&myRole()==="athlete"){v="ath";st.view="ath"}if(v==="par"){if(!st.parentOK&&!isPro()&&myRole()==="owner"){st.pinNext="par";renderPinGate();return}renderPar();return}
@@ -1366,6 +1366,72 @@ if(k==="meswitch"){var m=nm9MeAth();if(!m)return;st.cur=m.id;await loadAthlete()
 function nm9MeNudgeHTML(){var a=A();if(!a||nm9MeAth()||a.sport==="My Standard"||myRole()==="athlete")return '';var x=lsGet("nm9-mex");if(x&&Date.now()-x<7*864e5)return '';
 return '<section class="card pushc"><div class="eyebrow">Parents + coaches &middot; don\'t forget</div><h3>Set up your own Standard</h3><p class="muted" style="font-size:14.5px;margin:0">'+esc(a.name)+' is set. Now lead by example: your own check-in, routines, goals, Daily Word, private journal and 6 AM / 8 PM alerts. Takes 30 seconds. Private to your login.</p><label class="f">Your first name<input type="text" id="me-name" maxlength="30" value="'+esc(((st.fam&&st.fam.parent_name)||"").split(" ")[0])+'"></label><button class="btn" data-nj="mestart">Start my own Standard</button><button class="link" data-nj="mex" style="align-self:flex-start">Remind me later</button></section>'}
 (function(){var app=document.getElementById("nm9app");if(!app)return;app.addEventListener("click",function(e){var b=e.target&&e.target.closest?e.target.closest("[data-nj]"):null;if(!b)return;if(b.getAttribute("data-nj")==="mex"){lsSet("nm9-mex",Date.now());toast("We'll remind you later. It's always in the Parent / Coach tab.");nm9Re()}})})();
+
+
+/* ===== v21: adult Goal Finder for parents/coaches + "Write my own" for everyone ===== */
+function nm9IsMe(){var a=A();return !!(a&&a.sport==="My Standard")}
+var GF_QA={physical:["How do you feel when you wake up most mornings?","What would your health look like if nothing changes in 5 years?","Who is counting on you to be around and strong?"],
+mental:["What drains your focus every day?","What do you want to learn or get better at this year?","How do you handle stress right now?"],
+spiritual:["How much time do you spend with God each day?","Are you leading your family spiritually?","What does your faith look like when nobody is watching?"],
+emotional:["Are you fully present with the people you love?","How do you respond when you're tired or stressed?","Who needs more of your time and patience?"],
+future:["Where do you want to be financially in 3 years?","What is the next big step in your work or business?","What is one step you could take this month?"]};
+var GF_ADULT={
+physical:[
+{k:"a_weight",n:"Lose weight",d:"Get lean and feel better",kind:"num",label:"Your weight right now",unit:"lbs",ex:200,dlt:-20,dec:0,t:"Weigh {y} lbs",tq:"Weigh {q} lbs",tm:"Weigh {m} lbs",h:[["am","Walk or move 20 min",ALLD],["home","No sugar or late-night snacks",ALLD]]},
+{k:"a_work",n:"Work out consistently",d:"Show up 4x a week",kind:"cnt",unit:"workouts",y:200,q:50,m:16,t:"{y} workouts this year",tq:"{q} workouts in 90 days",tm:"{m} workouts this month",h:[["am","Workout or training",[1,2,4,5]],["pm","Stretch 10 min",ALLD]]},
+{k:"a_steps",n:"Move more",d:"Daily steps",kind:"num",label:"Your average steps a day right now",unit:"steps",ex:5000,dlt:5000,dec:0,t:"Average {y} steps a day",tq:"Average {q} steps a day",tm:"Average {m} steps a day",h:[["am","10-minute walk",ALLD],["pm","Hit my step goal",ALLD]]},
+{k:"a_eat",n:"Eat clean",d:"Fuel like you mean it",kind:"done",t:"Eat clean 80% of the time all year",tq:"Cook at home 5 nights a week for 90 days",tm:"No fast food for 30 days",h:[["home","Drink 100 oz of water",ALLD],["home","Protein with every meal",ALLD]]},
+{k:"a_sleep",n:"Sleep and recover",d:"7+ hours a night",kind:"done",t:"Sleep 7+ hours most nights this year",tq:"Lights out by 10:30 for 90 days",tm:"Phone out of the bedroom for 30 nights",h:[["pm","Phone away, lights out on time",ALLD]]}],
+mental:[
+{k:"read",n:"Read more",d:"Grow your mind",kind:"cnt",unit:"books",y:12,q:3,m:1,t:"Read {y} books this year",tq:"Read {q} books in 90 days",tm:"Read {m} book this month",h:[["pm","Read 10 min",ALLD]]},
+{k:"a_screen",n:"Less screen time",d:"Take back your attention",kind:"num",label:"Your phone screen time a day (hours)",unit:"hrs",ex:5,dlt:-2,dec:1,t:"{y} hours of screen time a day",tq:"{q} hours of screen time a day",tm:"{m} hours of screen time a day",h:[["pm","No phone the first hour home",WK],["am","No phone the first 30 minutes",ALLD]]},
+{k:"a_learn",n:"Learn a new skill",d:"Keep growing",kind:"done",t:"Master one new skill this year",tq:"Finish one course or certification",tm:"Practice 20 minutes, 4 days a week",h:[["pm","Learn 20 min",[1,2,4,5]]]},
+{k:"calm",n:"Handle stress better",d:"Calm under pressure",kind:"done",t:"Be the calmest person in the room when it gets hard",tq:"Daily breathwork for 90 days",tm:"2 minutes of breathwork every day for 30 days",h:[["am","Lock In breathing 2 min",ALLD],["pm","Wind Down breathing 3 min",ALLD]]},
+{k:"a_journal",n:"Journal daily",d:"Clear your head",kind:"done",t:"Journal every day this year",tq:"90 days of gratitude + daily download",tm:"Write in my journal 30 days in a row",h:[["pm","Gratitude + Daily Download",ALLD]]}],
+spiritual:[
+{k:"pray",n:"Pray every day",d:"Start and end with God",kind:"done",t:"Pray every morning and night this year",tq:"90 days of morning and night prayer",tm:"30 days in a row of morning prayer",h:[["am","Pray",ALLD],["pm","Pray",ALLD]]},
+{k:"bible",n:"Read the Bible",d:"Know the Word",kind:"cnt",unit:"chapters",y:260,q:65,m:22,t:"Read {y} chapters of the Bible this year",tq:"Read {q} chapters in 90 days",tm:"Read {m} chapters this month",h:[["am","Read one chapter",WK]]},
+{k:"a_lead",n:"Lead my family in faith",d:"Be the spiritual leader",kind:"done",t:"Lead my family in faith all year",tq:"Family devotion or prayer once a week for 90 days",tm:"Pray with my family 4 times this month",h:[["home","Pray with my family",[0,3]]]},
+{k:"a_serve",n:"Church and serving",d:"Show up and serve",kind:"done",t:"Be at church every week and serve monthly",tq:"Serve at church or in my community once a month",tm:"4 out of 4 Sundays this month",h:[["home","Church",[0]]]},
+{k:"grat",n:"Live grateful",d:"Thank God daily",kind:"done",t:"Thank God for something every single day",tq:"90 days of a gratitude list",tm:"Write 3 things I'm grateful for, 30 nights in a row",h:[["pm","Gratitude: 3 things",ALLD]]}],
+emotional:[
+{k:"a_present",n:"Be present with my kids",d:"Time, not just money",kind:"done",t:"Be fully present for my kids all year",tq:"One-on-one time with each kid every week for 90 days",tm:"Phone-free dinners 5 nights a week this month",h:[["home","Phone-free time with my kids",ALLD]]},
+{k:"a_marriage",n:"Strengthen my marriage",d:"Lead at home",kind:"done",t:"Grow closer to my spouse this year",tq:"Date night every week for 90 days",tm:"Encourage my spouse every day this month",h:[["home","Encourage my spouse",ALLD],["home","Date night",[5]]]},
+{k:"a_patience",n:"Patience and temper",d:"Respond, don't react",kind:"done",t:"Be known for patience at home and at work",tq:"No blow-ups for 90 days",tm:"3 deep breaths before I respond, every time, for 30 days",h:[["am","3 deep breaths, set my attitude",ALLD],["pm","Write one moment I stayed in control",ALLD]]},
+{k:"a_people",n:"Invest in people",d:"Friends, mentors, team",kind:"done",t:"Mentor or invest in someone all year",tq:"Reach out to one person who needs it every week",tm:"Call or text a friend or mentor every week",h:[["home","Encourage one person",WK]]}],
+future:[
+{k:"a_save",n:"Save money",d:"Build a cushion",kind:"cnt",unit:"$ saved",y:10000,q:2500,m:800,t:"Save ${y} this year",tq:"Save ${q} in 90 days",tm:"Save ${m} this month",h:[["home","Check my budget",[0]],["home","Save first, spend second",[5]]]},
+{k:"a_debt",n:"Pay off debt",d:"Get free",kind:"cnt",unit:"$ paid off",y:10000,q:2500,m:800,t:"Pay off ${y} of debt this year",tq:"Pay off ${q} in 90 days",tm:"Pay off ${m} this month",h:[["home","No unplanned spending",ALLD],["home","Check my budget",[0]]]},
+{k:"a_income",n:"Grow my income",d:"Earn more",kind:"done",t:"Hit my income goal this year",tq:"Land one new client, raise or income stream",tm:"One income-growing action every week",h:[["home","One action that grows my income",WK]]},
+{k:"career",n:"Next step in my career or business",d:"Work, school, vision",kind:"done",t:"Land my next role, degree step or business win",tq:"Finish one big project that moves my career",tm:"One step toward my vision every week",h:[["home","One step toward my long-term vision",WK]]},
+{k:"a_legacy",n:"Build my family's future",d:"Will, insurance, college fund",kind:"done",t:"Get my family's future in order this year",tq:"Set up a will, insurance or college savings",tm:"Book one appointment that protects my family",h:[["home","One step toward my family's future",[0]]]}]};
+var GF_CUSTOM={k:"custom",n:"Write my own",d:"Your goal, your words",kind:"custom"};
+function gfTpls(a){var base=nm9IsMe()?(GF_ADULT[a]||[]):GF_T[a].filter(function(t){var lk=lvOf();return !t.lv||t.lv.indexOf(lk)>=0});return base.concat([GF_CUSTOM])}
+function gfCust(k){fd.cust=fd.cust||{};return fd.cust[k]||(fd.cust[k]={t:"",c:"",g:"",u:"",h:""})}
+function gfCustomHTML(k){var c=gfCust(k);return '<div style="display:flex;flex-direction:column;gap:10px;border-top:1px solid var(--line);padding-top:12px"><label class="f">My goal<input type="text" id="gfc-t" maxlength="80" placeholder="e.g. Run a half marathon" value="'+esc(c.t)+'"></label>'+
+'<small class="muted" style="font-size:12.5px">Want to track a number? (optional)</small><div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px"><label class="f">Now<input type="text" inputmode="decimal" id="gfc-c" placeholder="e.g. 2" value="'+esc(c.c)+'"></label><label class="f">Goal<input type="text" inputmode="decimal" id="gfc-g" placeholder="e.g. 13" value="'+esc(c.g)+'"></label><label class="f">Unit<input type="text" id="gfc-u" maxlength="12" placeholder="miles" value="'+esc(c.u)+'"></label></div>'+
+'<label class="f">A daily habit that gets me there (optional)<input type="text" id="gfc-h" maxlength="60" placeholder="e.g. Run 20 minutes" value="'+esc(c.h)+'"></label></div>'}
+function gfCustSync(){if(!fd||fd.step!==1)return;var k=fd.areas[fd.ai];if(fd.picks[k]!=="custom")return;var c=gfCust(k),v=function(id){var e=document.getElementById(id);return e?e.value.trim():null};
+["t","c","g","u","h"].forEach(function(f){var x=v("gfc-"+f);if(x!=null)c[f]=x})}
+function gfCustomPlan(a){var c=gfCust(a),dm=DIMS.find(function(d){return d.k===a}),title=c.t||("My "+(dm?dm.n:"")+" goal"),R=isRookie(),o={t:{n:title},goals:[],habits:[]};
+var cur=parseFloat(c.c),tgt=parseFloat(c.g),u=c.u||"";
+if(!isNaN(cur)&&!isNaN(tgt)&&cur!==tgt){var dec=(String(c.c)+String(c.g)).indexOf(".")>=0?1:0,rd=function(v){var p=Math.pow(10,dec);return Math.round(v*p)/p};
+var q=rd(cur+(tgt-cur)*.4),m=rd(cur+(tgt-cur)*.15);if(m===cur)m=rd(cur+(tgt>cur?1:-1)*(dec?0.1:1));
+var lbl=function(v){return title+": "+v+(u?" "+u:"")};
+if(!R){o.goals.push({lv:"year",title:lbl(tgt),kind:"num",start_val:cur,target_val:tgt,unit:u});o.goals.push({lv:"q",title:lbl(q),kind:"num",start_val:cur,target_val:q,unit:u})}
+o.goals.push({lv:"m",title:lbl(m),kind:"num",start_val:cur,target_val:m,unit:u})}
+else{if(!R){o.goals.push({lv:"year",title:title,kind:"done"});o.goals.push({lv:"q",title:"90 days of real progress: "+title,kind:"done"})}o.goals.push({lv:"m",title:"First 30 days: show up every week for "+title,kind:"done"})}
+if(c.h)o.habits.push({kind:nm9IsMe()||isPro()?"home":"train",title:c.h,days:ALLD});
+return o}
+
+/* adult starters + quick picks for parents/coaches (My Standard) */
+var RT_ATH={am:RT.am.start.slice(),ami:RT.am.ideas.slice(),pm:RT.pm.start.slice(),pmi:RT.pm.ideas.slice()};
+var RT_ME={am:["Up on time (set yours: up by 6:00)","Drink a glass of water","Pray","Read one chapter","Move or stretch 10 min","Review today's top 3","Make my bed","Eat a real breakfast"],
+ami:["Workout","Walk 20 min","Gratitude: 3 things","Encourage my kids before school","Plan my day","Vitamins"],
+pm:["Plan tomorrow's top 3","Phone away during family time","Pray with my family","Gratitude: 3 things","Stretch 10 min","Read 10 min","Phone away, lights out (set yours: by 10:30)"],
+pmi:["Gratitude + Daily Download","Talk with my spouse","Ask my kids about their day","Lay out tomorrow's clothes","No screens 30 min before bed","Vitamins"]};
+SPORT_IDEAS.me=["Workout 45 min","Walk 20 min","10,000 steps","Stretch or mobility 10 min","Cardio 30 min","Strength training","Drink 100 oz of water","Protein with every meal","No sugar today","Sleep 7+ hours"];
+function nm9ApplyMe(){var me=nm9IsMe(),S=me?RT_ME:RT_ATH;RT.am.start=S.am;RT.am.ideas=S.ami;RT.pm.start=S.pm;RT.pm.ideas=S.pmi}
 
 boot();
 })();
