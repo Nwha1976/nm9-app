@@ -766,7 +766,7 @@ function renderMenu(){
   '<div class="card"><h2>How it works</h2><p class="muted" style="font-size:14.5px">The full guide, tips, and the walkthrough.</p><div class="row2"><button class="btn ghost" data-act="guide">Open the guide</button><button class="btn ghost" data-act="intro">Replay walkthrough</button></div></div>'+
   alertCardHTML()+accessCardHTML()+(myRole()!=="owner"||isPro()&&!(st.fam&&st.fam.pin_hash)?'':'<div class="card"><h2>Parent / Coach PIN</h2><label class="f">New 4-digit PIN<input type="tel" id="newpin" maxlength="4" inputmode="numeric" placeholder="••••"></label><button class="btn ghost" data-act="pin">Update PIN</button></div>')+
   '<div class="card"><h2>Add to your home screen</h2><p class="muted" style="font-size:14.5px">iPhone: tap Share, then “Add to Home Screen.” Android: tap ⋮, then “Add to Home screen.” It opens like an app.</p></div>'+
-  (LIVE?'<button class="btn ghost" data-act="signout">Sign out</button>':'')+
+  (LIVE?'<button class="btn ghost" data-act="signout">Sign out</button>':'')+'<a class="btn ghost" href="https://nm9performance.com/delete-account" target="_blank" rel="noopener" style="display:block;text-align:center;text-decoration:none;color:#ff8a8a">Delete my account</a>'+
   '<button class="btn ghost" data-act="ath">Done</button>'+foot();
 }
 
