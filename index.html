@@ -1169,7 +1169,7 @@ document.getElementById("nm9app").addEventListener("input",async function(e){
     if(p.length===4){var ok=st.fam&&st.fam.pin_hash?(await sha(p))===st.fam.pin_hash:p==="1234";if(ok){st.parentOK=true;var nx=st.pinNext||"par";st.pinNext=null;go(nx)}else{ds.forEach(function(x){x.value=""});ds[0].focus();toast("Wrong PIN")}}
   }
 });
-document.getElementById("nm9app").addEventListener("change",async function(e){if(e.target.id==="athsel"){st.cur=e.target.value;await loadAthlete();st.view==="par"?renderPar():renderAth()}});
+document.getElementById("nm9app").addEventListener("change",async function(e){if(e.target.id==="athsel"){st.cur=e.target.value;await loadAthlete();st.view==="par"?renderPar():go("ath")}});
 function keep(fn){var y=window.scrollY;fn();window.scrollTo(0,y)}
 
 /* ===== Boot ===== */
@@ -1179,7 +1179,7 @@ async function boot(){
     if(!(await DB.isMember())){screenJoin();return}
     st.fam=await DB.family();st.aths=await DB.athletes();await axRoles();
     if(!st.aths.length||(!st.fam&&!Object.keys(st.roles||{}).length)){screenSetup();return}
-    if(!st.cur||!st.aths.find(function(a){return a.id===st.cur}))st.cur=st.aths[0].id;
+    if(!st.cur||!st.aths.find(function(a){return a.id===st.cur}))st.cur=(nm9MeAth()||st.aths[0]).id;
     await loadAthlete();
     var lk=lvOf(),sk="nm9-lv-"+A().id,seen=lsGet(sk);
     if(!seen||!LEVELS[seen])lsSet(sk,lk);else if(LEVELS[lk].r>LEVELS[seen].r&&st.view!=="intro")st.view="levelup";
@@ -1494,6 +1494,11 @@ var _nm9RP=renderPar;renderPar=function(){_nm9RP.apply(this,arguments);try{var x
 /* v24: Daily Word first in the morning until prayed */
 function nm9DWFirst(){try{return dwOn()&&new Date().getHours()<12&&!dwHas(new Date())}catch(e){return false}}
 document.addEventListener("visibilitychange",function(){try{if(document.visibilityState==="visible"&&st.view==="ath"&&A()&&nm9DWFirst()){go("ath");scrollTo(0,0)}}catch(e){}});
+/* v25: open on your own Standard; parents/coaches see (not edit) an athlete who has their own login */
+function nm9OthersAth(a){a=a||A();if(!a||myRole()==="athlete"||a.sport==="My Standard")return false;var L=axList[a.id];var me=String(st.myEmail||"").toLowerCase();return !!(L&&L.some(function(x){return x.role==="athlete"&&String(x.email||"").toLowerCase()!==me}))}
+var _nm9Go2=go;go=function(v){var a=A();if(v==="ath"&&a&&myRole()!=="athlete"&&a.sport!=="My Standard"){if(!(a.id in axList)){axList[a.id]=null;axLoad(a.id).then(function(){if(st.view==="ath"&&nm9OthersAth())go("par")})}else if(nm9OthersAth()){v="par"}}return _nm9Go2.call(this,v)};
+var _nm9RP2=renderPar;renderPar=function(){_nm9RP2.apply(this,arguments);try{var a=A();if(a&&nm9OthersAth()&&root.firstElementChild){root.firstElementChild.insertAdjacentHTML("afterend",'<div class="card" style="margin:0 0 14px"><p class="muted" style="margin:0;font-size:14px">'+esc(a.name)+' checks in from their own phone. This is your view of their day. Only '+esc(a.name)+' can check it off.</p></div>')}}catch(e){}};
+
 boot();
 })();
 </script>
