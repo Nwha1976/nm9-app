@@ -691,12 +691,12 @@ function shopHTML(){return '<section class="card"><div class="eyebrow">NM9 Gear 
 function renderAth(){
   var a=A(),n=cyc().dn,ph=PHASES[cyc().qi],done=!!st.log[dk(today)],dr=st.draft;
   var rated=Object.keys(dr.rates).length===5,live=rated?dayScore(dr):null;
-  root.innerHTML=header()+athSwitch()+
+  root.innerHTML=header()+athSwitch()+(nm9DWFirst()?'<div style="margin-bottom:14px">'+dwCardHTML()+'</div>':'')+
   '<section class="hero"><div><div class="eyebrow">'+esc(a.name)+' · Day <span class="num">'+n+'</span> of 365 · '+ph[0]+'</div><h1>'+(done?'Standard set.':'Set today\'s standard.')+'</h1><p>'+(done?'Checked in. You can update it before bed.':isRookie()?'Five quick checks. About 30 seconds. Do it with a parent.':isPro()?'Five areas. Sixty seconds. Own it.':'Five areas. About 60 seconds. Be honest.')+'</p></div><div class="streak"><b class="num">'+streak()+'</b><span>Day streak</span></div></section>'+
   '<div><div class="phasebar">'+PHASES.map(function(p){return '<div><i style="width:'+Math.max(0,Math.min(100,(n-p[1]+1)/(p[2]-p[1]+1)*100))+'%"></i></div>'}).join('')+'</div><div class="phaselbl">'+PHASES.map(function(p){return '<span class="'+(p===ph?'on':'')+'">'+p[0]+'</span>'}).join('')+'</div></div>'+
   (st.note&&st.note.text&&!isPro()?'<div class="note"><div class="eyebrow">Message from '+esc(st.note.from_name||'Parent')+'</div><p>'+esc(st.note.text)+'</p></div>':'')+
   tipHTML()+
-  nm9TopHTML()+nm9FamHTML()+nm9MeNudgeHTML()+todayRoutinesHTML()+dwCardHTML()+nm9JCardHTML()+fuelCardHTML()+mindCardHTML()+
+  nm9TopHTML()+nm9FamHTML()+nm9MeNudgeHTML()+todayRoutinesHTML()+(nm9DWFirst()?'':dwCardHTML())+nm9JCardHTML()+fuelCardHTML()+mindCardHTML()+
   todayGoalsHTML()+nm9GCardHTML()+
   todayChoresHTML()+
   DIMS.map(function(d){return '<section class="card"><div class="dim-h"><div><h3>'+d.n+'</h3><small>'+d.d+'</small></div><span class="sc num">'+(dr.rates[d.k]?scoreOf(dr,d.k)+'/100':'')+'</span></div>'+
@@ -1491,6 +1491,9 @@ if(k==="famgo"){go("menu");setTimeout(function(){var hs=document.querySelectorAl
 })();
 var _nm9RP=renderPar;renderPar=function(){_nm9RP.apply(this,arguments);try{var x=nm9FamHTML();if(x&&root.firstElementChild)root.firstElementChild.insertAdjacentHTML("afterend",'<div style="padding:0 16px">'+x+'</div>')}catch(e){}};
 
+/* v24: Daily Word first in the morning until prayed */
+function nm9DWFirst(){try{return dwOn()&&new Date().getHours()<12&&!dwHas(new Date())}catch(e){return false}}
+document.addEventListener("visibilitychange",function(){try{if(document.visibilityState==="visible"&&st.view==="ath"&&A()&&nm9DWFirst()){go("ath");scrollTo(0,0)}}catch(e){}});
 boot();
 })();
 </script>
