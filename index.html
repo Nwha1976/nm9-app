@@ -690,6 +690,7 @@ function athSwitch(){if(st.aths.length<2)return '';return '<select id="athsel" a
 function shopHTML(){return '<section class="card"><div class="eyebrow">NM9 Gear &amp; Books</div><h2>Rep the standard</h2><div class="shop2"><a href="https://notbysight.io" target="_blank" rel="noopener"><b>Not By Sight</b><span>Premium student-athlete streetwear</span><i>Shop apparel &rarr;</i></a><a href="https://nm9performance.com/#books" target="_blank" rel="noopener"><b>The Books</b><span>Young Guns books &amp; 90-day journals</span><i>See the books &rarr;</i></a></div></section>'}
 function renderAth(){
   var a=A(),n=cyc().dn,ph=PHASES[cyc().qi],done=!!st.log[dk(today)],dr=st.draft;
+  if(nm9NeedStart()){root.innerHTML=header()+athSwitch()+nm9StartHTML()+foot();try{window.scrollTo(0,0)}catch(e){}return}
   var rated=Object.keys(dr.rates).length===5,live=rated?dayScore(dr):null;
   root.innerHTML=header()+athSwitch()+(nm9DWFirst()?'<div style="margin-bottom:14px">'+dwCardHTML()+'</div>':'')+
   '<section class="hero"><div><div class="eyebrow">'+esc(a.name)+' · Day <span class="num">'+n+'</span> of 365 · '+ph[0]+'</div><h1>'+(done?'Standard set.':'Set today\'s standard.')+'</h1><p>'+(done?'Checked in. You can update it before bed.':isRookie()?'Five quick checks. About 30 seconds. Do it with a parent.':isPro()?'Five areas. Sixty seconds. Own it.':'Five areas. About 60 seconds. Be honest.')+'</p></div><div class="streak"><b class="num">'+streak()+'</b><span>Day streak</span></div></section>'+
@@ -1264,6 +1265,28 @@ root.innerHTML=header()+athSwitch()+'<section class="hero" style="grid-template-
 '<div class="kpis"><div class="kpi"><span>Entries</span><b class="num">'+days.length+'</b><em class="muted">days</em></div><div class="kpi"><span>Grateful for</span><b class="num">'+gc+'</b><em class="muted">things</em></div><div class="kpi"><span>Streak</span><b class="num">'+nm9JStreak(o)+'</b><em class="muted">days</em></div></div>'+
 (days.length?days.map(function(d){var r=o.rows[d];return '<section class="card jent"><div class="eyebrow">'+esc(parse(d).toLocaleDateString(undefined,{weekday:"short",month:"short",day:"numeric",year:"numeric"}))+'</div>'+(r.grateful?'<p><b>Grateful for:</b> '+esc(r.grateful)+'</p>':'')+(r.worked?'<p><b>What worked:</b> '+esc(r.worked)+'</p>':'')+(r.didnt?'<p><b>What didn\'t:</b> '+esc(r.didnt)+'</p>':'')+(r.notes?'<p><b>On my mind:</b> '+esc(r.notes)+'</p>':'')+'</section>'}).join(''):'<div class="card"><p class="muted" style="margin:0">No entries yet. Start today on the Today screen.</p></div>')+
 '<button class="btn ghost" data-act="ath">Back to today</button>'+foot()}
+/* ===== v21: Morning Start gate — Word, prayer, quote, then 1 thing grateful before the check-in ===== */
+function nm9NeedStart(){try{var a=A();if(!a||st.startDone===dk(today))return false;var o=jr[a.id];if(!o){jr[a.id]={self:null,rows:{}};setTimeout(nm9JLoad,0);return false}if(!o.self)return false;var r=o.rows[dk(today)];return !(r&&r.grateful)}catch(e){return false}}
+function nm9StartHTML(){var a=A(),h=new Date().getHours(),g=h<12?'Good morning':h<17?'Good afternoon':'Good evening',w=null;
+if(dwOn()){try{dwEnsure();w=dwToday()}catch(e){w=null}}
+var dr=lsGet("nm9-sd-"+a.id+"-"+dk(today))||"";
+return '<section class="hero" style="grid-template-columns:1fr"><div><div class="eyebrow">Start your day &middot; Word &rarr; Grateful &rarr; Check in</div><h1>'+g+', '+esc(String(a.name||'').split(' ')[0])+'.</h1><p>Before anything else: God first, gratitude second, then set your standard.</p></div></section>'+
+(w?'<section class="card"><div class="eyebrow">Daily Word</div><h3>'+esc(w.t)+'</h3><p style="font-style:italic;margin:10px 0 4px">&ldquo;'+esc(w.v)+'&rdquo;</p><p class="muted" style="margin:0 0 10px;font-size:13px">'+esc(w.r)+'</p><p style="margin:0 0 10px">'+esc(w.m)+'</p><p style="margin:0"><b>Pray:</b> <i>'+esc(w.p)+'</i></p>'+qHTML()+'</section>':'<section class="card"><div class="eyebrow">Motivation</div>'+qHTML()+'</section>')+
+'<section class="card" style="border-color:rgba(232,194,106,.55)"><div class="eyebrow">Gratitude</div><h3>Name one thing you&rsquo;re grateful for today</h3><p class="jlock">&#128274; Just for you. This is not shared with your parent or coach.</p>'+
+'<label class="f">Today I&rsquo;m grateful for&hellip;<input type="text" id="s-grateful" maxlength="200" placeholder="A person, a moment, a win" value="'+esc(dr)+'"></label>'+
+'<button class="btn" data-nj="sgo" style="font-size:18px;padding:14px;margin-top:6px">'+(w?'Amen &middot; ':'')+'Start my check-in &rarr;</button></section>'}
+async function nm9StartGo(btn){var a=A(),d=dk(today),e=document.getElementById("s-grateful"),gv=e?e.value.trim():"";
+if(!gv){toast("Write one thing you're grateful for first");if(e)e.focus();return}
+var o=jr[a.id]||(jr[a.id]={self:true,rows:{}}),old=o.rows[d]||{};
+var row={athlete_id:a.id,day:d,grateful:gv,worked:old.worked||"",didnt:old.didnt||"",notes:old.notes||"",updated_at:new Date().toISOString()};
+if(btn)btn.disabled=true;
+try{if(LIVE){var r=await sb.from("journal").upsert(row);if(r.error)throw r.error}else{var L=lsGet("nm9-jl-"+a.id)||{};L[d]=row;lsSet("nm9-jl-"+a.id,L)}
+o.rows[d]=row;try{localStorage.removeItem("nm9-sd-"+a.id+"-"+d)}catch(x){}}catch(x){console.error(x);if(btn)btn.disabled=false;toast("Couldn't save. Check your connection.");return}
+if(dwOn()&&!dwHas(new Date())){try{if(!LIVE)throw 0;var r1=await sb.from("word_log").insert({athlete_id:a.id,day:d});if(r1.error&&!/duplicate/i.test(r1.error.message))throw r1.error}catch(x){var l1=lsGet(dwKey())||[];if(l1.indexOf(d)<0)l1.push(d);lsSet(dwKey(),l1)}var L1=dwLog[a.id]||(dwLog[a.id]=[]);if(L1.indexOf(d)<0)L1.push(d)}
+st.startDone=d;toast("Locked in. Now set today's standard.");go("ath");try{window.scrollTo(0,0)}catch(x){}}
+(function(){var app=document.getElementById("nm9app");if(!app)return;
+app.addEventListener("click",function(e){var b=e.target&&e.target.closest?e.target.closest("[data-nj]"):null;if(b&&b.getAttribute("data-nj")==="sgo")nm9StartGo(b)});
+app.addEventListener("input",function(e){var t=e.target;if(t&&t.id==="s-grateful"){try{lsSet("nm9-sd-"+A().id+"-"+dk(today),t.value)}catch(x){}}});})();
 (function(){var app=document.getElementById("nm9app");if(!app)return;
 app.addEventListener("click",function(e){var b=e.target&&e.target.closest?e.target.closest("[data-nj]"):null;if(!b)return;var k=b.getAttribute("data-nj");
 if(k==="pushon"){nm9PushOn();return}if(k==="pushoff"){nm9PushOff();return}if(k==="pushtest"){nm9PushTest(false);return}
