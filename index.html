@@ -662,7 +662,7 @@ function screenLogin(msg){
   '<details class="pwbox"><summary class="link" style="cursor:pointer;list-style:none;font-size:13.5px">Have a password? Sign in with a password</summary><div style="display:flex;flex-direction:column;gap:10px;margin-top:12px"><label class="f">Email<input type="email" id="pw-em" autocomplete="username" inputmode="email"></label><label class="f">Password<input type="password" id="pw-pw" autocomplete="current-password" style="background:var(--panel2);color:var(--fg);border:1px solid var(--line);border-radius:12px;padding:12px 13px;font:inherit;font-size:16px;width:100%"></label><button class="btn ghost" data-act="pwlogin">Sign in with password</button></div></details></div>'+foot();
 }
 function screenJoin(){
-  if(NATIVE){root.innerHTML='<div class="center"><div class="eyebrow">Members only</div><h1 class="big">Unlock the Daily Standard.</h1><p class="muted">We couldn\'t find an active NM9 membership for this email. The Daily Standard is part of NM9 membership. Sign in with the email address on your membership.</p><button class="btn ghost" data-act="signout">Use a different email</button></div>'+foot();return}
+  if(NATIVE){if(nm9IAP()){nm9IAPScreen();return}root.innerHTML='<div class="center"><div class="eyebrow">Members only</div><h1 class="big">Unlock the Daily Standard.</h1><p class="muted">We couldn\'t find an active NM9 membership for this email. The Daily Standard is part of NM9 membership. Sign in with the email address on your membership.</p><button class="btn ghost" data-act="signout">Use a different email</button></div>'+foot();return}
   root.innerHTML='<div class="center"><div class="eyebrow">Members only</div><h1 class="big">Unlock the Daily Standard.</h1><p class="muted">We couldn\'t find an active membership for this email. Start the app on its own, or get it included with the NM9 Student-Athlete Club.</p>'+
   '<div class="card"><div class="eyebrow">App only</div><h2>$9.99 / month</h2><p class="muted">or $99.99 a year (2 months free). 7-day free trial. Athlete check-ins, streaks, milestones and the parent view.</p><a class="btn" style="text-align:center;text-decoration:none" href="'+PAY_MONTHLY+'">Start free trial: $9.99/mo</a><a class="btn ghost" style="text-align:center;text-decoration:none;margin-top:10px" href="'+PAY_ANNUAL+'">Annual: $99.99/yr (2 months free)</a></div>'+
   '<div class="card"><div class="eyebrow">Best value</div><h2>NM9 Student-Athlete Club</h2><p class="muted">From $19.97 / month. The app is included FREE, plus the Sunday Huddles, community and training library.</p><a class="btn ghost" style="text-align:center;text-decoration:none" href="'+JOIN_URL+'">See club plans</a></div>'+
@@ -1265,6 +1265,33 @@ root.innerHTML=header()+athSwitch()+'<section class="hero" style="grid-template-
 '<div class="kpis"><div class="kpi"><span>Entries</span><b class="num">'+days.length+'</b><em class="muted">days</em></div><div class="kpi"><span>Grateful for</span><b class="num">'+gc+'</b><em class="muted">things</em></div><div class="kpi"><span>Streak</span><b class="num">'+nm9JStreak(o)+'</b><em class="muted">days</em></div></div>'+
 (days.length?days.map(function(d){var r=o.rows[d];return '<section class="card jent"><div class="eyebrow">'+esc(parse(d).toLocaleDateString(undefined,{weekday:"short",month:"short",day:"numeric",year:"numeric"}))+'</div>'+(r.grateful?'<p><b>Grateful for:</b> '+esc(r.grateful)+'</p>':'')+(r.worked?'<p><b>What worked:</b> '+esc(r.worked)+'</p>':'')+(r.didnt?'<p><b>What didn\'t:</b> '+esc(r.didnt)+'</p>':'')+(r.notes?'<p><b>On my mind:</b> '+esc(r.notes)+'</p>':'')+'</section>'}).join(''):'<div class="card"><p class="muted" style="margin:0">No entries yet. Start today on the Today screen.</p></div>')+
 '<button class="btn ghost" data-act="ath">Back to today</button>'+foot()}
+/* ===== v22: In-app subscriptions (Google Play via RevenueCat) ===== */
+var RC_KEY="goog_kGwIcNkMjZRkyhwDEPJyaUDWAQt";
+function nm9IAP(){try{return !!(NATIVE&&window.Capacitor&&Capacitor.Plugins&&Capacitor.Plugins.Purchases)}catch(e){return false}}
+async function nm9RC(){var P=Capacitor.Plugins.Purchases;var em=st.myEmail;if(!em){try{var u=await DB.session();em=((u&&u.email)||"").toLowerCase();st.myEmail=em}catch(e){}}
+if(st.rcUser!==em){await P.configure({apiKey:RC_KEY,appUserID:em||undefined});st.rcUser=em}return P}
+async function nm9IAPPkgs(){var P=await nm9RC();var o=await P.getOfferings();var c=o&&(o.current||(o.all&&Object.values(o.all)[0]));var ps=(c&&c.availablePackages)||[];
+var f=function(t,id){return ps.find(function(x){return x.packageType===t||x.identifier===id})};return {m:f("MONTHLY","$rc_monthly"),y:f("ANNUAL","$rc_annual")}}
+async function nm9IAPScreen(){root.innerHTML='<div class="center"><div class="eyebrow">Members only</div><h1 class="big">Unlock the Daily Standard.</h1><p class="muted">Loading plans&hellip;</p></div>'+foot();
+var k={};try{k=await nm9IAPPkgs()}catch(e){console.error(e)}st.iapPk=k;
+var pm=k.m&&k.m.product?k.m.product.priceString:"$9.99",py=k.y&&k.y.product?k.y.product.priceString:"$99.99",ok=!!(k.m||k.y);
+root.innerHTML='<div class="center"><div class="eyebrow">Members only</div><h1 class="big">Unlock the Daily Standard.</h1><p class="muted">Daily check-ins, the Daily Word, private gratitude journal, goals, GPA, streaks and the parent / coach view.</p>'+
+'<div class="card"><div class="eyebrow">NM9 Daily Standard</div><h2>'+esc(pm)+' / month</h2><p class="muted">or '+esc(py)+' a year (2 months free). Cancel anytime in Google Play.</p>'+
+(ok?(k.m?'<button class="btn" data-ia="buy" data-p="m">Subscribe: '+esc(pm)+'/mo</button>':'')+(k.y?'<button class="btn ghost" data-ia="buy" data-p="y" style="margin-top:10px">Annual: '+esc(py)+'/yr (2 months free)</button>':''):'<p class="muted">Plans are not available right now. Please try again later.</p>')+
+'</div><p class="muted" style="font-size:13px">Already an NM9 Club member? Sign in with the email on your membership and the app is included free.</p>'+
+'<button class="btn ghost" data-ia="restore">Restore purchases</button><button class="btn ghost" data-act="signout" style="margin-top:10px">Use a different email</button>'+
+'<p class="muted" style="font-size:12px;margin-top:14px">Subscriptions renew automatically until canceled in Google Play. <a href="https://play.google.com/store/account/subscriptions" target="_blank" rel="noopener">Manage subscription</a> &middot; <a href="https://nm9performance.com/contact" target="_blank" rel="noopener">Help</a></p></div>'+foot()}
+async function nm9IAPDone(){toast("Activating your access…");
+for(var i=0;i<8;i++){try{await sb.functions.invoke("nm9-rc-sync",{body:{email:st.myEmail}})}catch(e){}
+try{if(await DB.isMember()){toast("You're in. Welcome to the Standard.");boot();return}}catch(e){}await new Promise(function(r){setTimeout(r,2000)})}
+toast("Purchase received. If the app doesn't open in a minute, tap Restore purchases.");nm9IAPScreen()}
+(function(){var app=document.getElementById("nm9app");if(!app)return;
+app.addEventListener("click",async function(e){var b=e.target&&e.target.closest?e.target.closest("[data-ia]"):null;if(!b)return;var k=b.getAttribute("data-ia");b.disabled=true;
+try{var P=await nm9RC();
+if(k==="buy"){var pk=st.iapPk&&st.iapPk[b.getAttribute("data-p")];if(!pk)throw new Error("no package");var r=await P.purchasePackage({aPackage:pk});var ci=r&&r.customerInfo;if(ci&&ci.entitlements&&Object.keys(ci.entitlements.active||{}).length){await nm9IAPDone();return}}
+if(k==="restore"){var r2=await P.restorePurchases();var c2=r2&&r2.customerInfo;if(c2&&Object.keys((c2.entitlements&&c2.entitlements.active)||{}).length){await nm9IAPDone();return}toast("No active subscription found for this Google account.")}
+}catch(err){var m=String((err&&(err.message||err.code))||"");if(!/cancel/i.test(m)){console.error(err);toast("Purchase didn't go through. Please try again.")}}
+b.disabled=false})})();
 /* ===== v21: Morning Start gate — Word, prayer, quote, then 1 thing grateful before the check-in ===== */
 function nm9NeedStart(){try{var a=A();if(!a||st.startDone===dk(today))return false;var o=jr[a.id];if(!o){jr[a.id]={self:null,rows:{}};setTimeout(nm9JLoad,0);return false}if(!o.self)return false;var r=o.rows[dk(today)];return !(r&&r.grateful)}catch(e){return false}}
 function nm9StartHTML(){var a=A(),h=new Date().getHours(),g=h<12?'Good morning':h<17?'Good afternoon':'Good evening',w=null;
